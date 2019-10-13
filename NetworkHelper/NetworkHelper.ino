@@ -69,6 +69,8 @@ void UpdateConnectionInfo(const char* ssid, const char* password)
   strcpy(savedConnectionInfo.password, password);
   savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
 
+  ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
+
 #ifdef DEBUG
   Serial.print("Checksum: "); Serial.println(savedConnectionInfo.checksum);
 #endif
