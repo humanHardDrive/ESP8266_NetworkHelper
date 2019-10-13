@@ -2,6 +2,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <WiFiClient.h>
+#include <EEPROM.h>
 
 //#define DONT_REMEMBER
 #define DEBUG
@@ -19,9 +20,10 @@ struct ConnectionInfo
   uint16_t checksum;
 };
 
-const char* sHelperNetworkServerName = "networkhelper";
-const char* sHelperNetworkSSID = "esp8266";
-const char* sHelperNetworkPassword = "";
+const char* sHelperNetworkServerName = "networkhelper"; //Name for the DNS
+const char* sHelperNetworkSSID = "esp8266"; //AP SSID
+const char* sHelperNetworkPassword = ""; //AP Password
+//If the password field is empty, no password is used
 
 bool bInfoRecovered = false;
 bool bConnectedToAP = false;
@@ -72,7 +74,7 @@ void UpdateConnectionInfo(const char* ssid, const char* password)
   strcpy(savedConnectionInfo.password, password);
   savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
 
-  ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
+  EEPROM.put(0, savedConnectionInfo);
 
 #ifdef DEBUG
   Serial.print("Checksum: "); Serial.println(savedConnectionInfo.checksum);
@@ -105,7 +107,11 @@ void Cleanup()
   else
     WiFi.softAPdisconnect (true);
 
+  EEPROM.end();
   server.stop();
+
+  //Let the EEPROM commit to flash
+  delay(100);
 }
 
 void SoftReset()
@@ -128,8 +134,8 @@ void SoftReset()
 
 void ResetConnectionInfo(ConnectionInfo* info)
 {
-  memset(&savedConnectionInfo, 0, sizeof(ConnectionInfo));
-  ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
+  memset(info, 0, sizeof(ConnectionInfo));
+  EEPROM.put(0, *info);
 }
 
 void setup()
@@ -138,26 +144,18 @@ void setup()
 
   delay(1000);
 
+  EEPROM.begin(96);
+
 #ifdef DEBUG
   Serial.begin(115200);
   Serial.println();
 #endif
 
-#ifdef DEBUG
-  Serial.print("SSID: ");
-  Serial.println(sHelperNetworkSSID);
-#endif
-
   //Recover connection info
-  if (ESP.rtcUserMemoryRead(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo)))
-    bInfoRecovered = true;
-#ifdef DEBUG
-  else
-    Serial.println("Failed to recover connection info");
-#endif
+  EEPROM.get(0, savedConnectionInfo);
 
 #ifndef DONT_REMEMBER
-  if (bInfoRecovered && isSavedInfoValid(&savedConnectionInfo) &&
+  if (isSavedInfoValid(&savedConnectionInfo) &&
       strlen(savedConnectionInfo.SSID))
   {
 #ifdef DEBUG
@@ -202,6 +200,12 @@ void setup()
 
   if (!bConnectedToAP)
   {
+#ifdef DEBUG
+    Serial.println("Creating AP");
+    Serial.print("SSID: ");
+    Serial.println(sHelperNetworkSSID);
+#endif
+
 #ifndef DONT_REMEMBER
     ResetConnectionInfo(&savedConnectionInfo);
     ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
