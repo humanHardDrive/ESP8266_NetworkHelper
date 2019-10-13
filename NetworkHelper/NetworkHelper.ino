@@ -154,6 +154,25 @@ void setup()
     Serial.print("SSID: "); Serial.println(savedConnectionInfo.SSID);
     Serial.print("Password: "); Serial.println(savedConnectionInfo.password);
 #endif
+    WiFi.mode(WIFI_STA);
+
+    if (strlen(savedConnectionInfo.password))
+      WiFi.begin(savedConnectionInfo.SSID, savedConnectionInfo.password);
+    else
+      WiFi.begin(savedConnectionInfo.SSID);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(500);
+#ifdef DEBUG
+      Serial.print(".");
+#endif
+    }
+
+#ifdef DEBUG
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+#endif
   }
   else
 #endif
