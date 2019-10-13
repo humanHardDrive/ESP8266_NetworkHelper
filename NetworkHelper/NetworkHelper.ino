@@ -3,6 +3,7 @@
 #include <ESP8266mDNS.h>
 #include <WiFiClient.h>
 #include <EEPROM.h>
+#include <string>
 
 //#define DONT_REMEMBER
 #define RST_BTN
@@ -43,7 +44,24 @@ void handleManualEntry()
 
 void handleScan()
 {
-  String msg = "<head><meta http-equiv='refresh' content='15'</head>";
+  String msg = "<head>  \
+                <meta http-equiv='refresh' content='15'> \
+                <style> \
+                table { \
+                  font-family: arial, sans-serif; \
+                  border-collapse: collapse;  \
+                  width: 75%;  \
+                } \
+                td, th {  \
+                  border: 1px solid #dddddd;  \
+                  text-align: left; \
+                  padding: 8px; \
+                } \
+                tr:nth-child(even) {  \
+                  background-color: #dddddd;  \
+                } \
+                </style>  \
+                </head>";
   bool bScanComplete = true;
 
   int scanCount = WiFi.scanComplete();
@@ -66,11 +84,33 @@ void handleScan()
   msg += scanCount;
   msg += " Networks Found</h1>";
 
+  msg += "<table> \
+          <tr>  \
+          <th>SSID</th> \
+          <th>Encryption</th> \
+          <th>RSSI</th> \
+          <th></th>";
+
   for (int i = 0; i < scanCount; i++)
   {
+    String ssid = WiFi.SSID(i);
+    
+    msg += "<tr>";
     // WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE
-    msg += "<p>" + WiFi.SSID(i) + "</p>";
+    msg += "<td>" + ssid + "</td>";
+    msg += "<td>" + String(WiFi.encryptionType(i)) + "</td>";
+    msg += "<td>" + String(WiFi.RSSI(i)) + "</td>";
+
+    msg += "<td>  \
+            <form action=\"/NetworkChange\" method=\"post\" \
+            <input type=\"hidden\" name=\"ssid\" value=\"" + ssid + "\"/> \
+            <input type=\"submit\" name=\"Connect\" \
+            </form> \
+            </td>";
+    
+    msg += "</tr>";
   }
+  msg += "</table>";
 
   if (bScanComplete)
   {
