@@ -42,6 +42,30 @@ void handleManualEntry()
   server.send(200, "text/html", "<form action=\"/NetworkChange\" method=\"POST\"><input type=\"text\" name=\"ssid\" placeholder=\"SSID\"></br><input type=\"password\" name=\"password\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Update\"></form>");
 }
 
+String EncyptionTypeAsString(int type)
+{
+  switch(type)
+  {
+    case 2:
+    return "WPA/PSK";
+
+    case 4:
+    return "WPA2/PSK";
+    
+    case 5:
+    return "WEP";
+
+    case 7:
+    return "NONE";
+
+    case 8:
+    return "WPA/WPA2/PSK";
+    
+    default:
+    return "UNKNOWN";
+  }
+}
+
 void handleScan()
 {
   String msg = "<head>  \
@@ -72,11 +96,7 @@ void handleScan()
 
   if (scanCount < 0)
   {
-    if(scanCount == -1) //Scan is still in progress
-      bScanComplete = false;
-    //A scanCount of -2 means that a scan was never started
-    //Use the scan complete flag to bootstrap
-      
+    bScanComplete = false;
     scanCount = 0;
   }
 
@@ -94,12 +114,12 @@ void handleScan()
   for (int i = 0; i < scanCount; i++)
   {
     String ssid = WiFi.SSID(i);
-    
+
     msg += "<tr>";
     // WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE
     msg += "<td>" + ssid + "</td>";
-    msg += "<td>" + String(WiFi.encryptionType(i)) + "</td>";
-    msg += "<td>" + String(WiFi.RSSI(i)) + "</td>";
+    msg += "<td>" + EncyptionTypeAsString(WiFi.encryptionType(i)) + "</td>";
+    msg += "<td>" + String(WiFi.RSSI(i)) + " dB</td>";
 
     msg += "<td>  \
             <form action=\"/NetworkChange\" method=\"post\" \
@@ -107,7 +127,7 @@ void handleScan()
             <input type=\"submit\" name=\"Connect\" \
             </form> \
             </td>";
-    
+
     msg += "</tr>";
   }
   msg += "</table>";
@@ -313,6 +333,8 @@ void setup()
     {
       WiFi.softAP(sHelperNetworkSSID);
     }
+
+    WiFi.scanNetworks(true);
   }
 
   configureServer(server);
