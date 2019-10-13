@@ -5,6 +5,7 @@
 #include <EEPROM.h>
 
 //#define DONT_REMEMBER
+#define RST_BTN
 #define DEBUG
 
 //Access point configuration
@@ -25,7 +26,6 @@ const char* sHelperNetworkSSID = "esp8266"; //AP SSID
 const char* sHelperNetworkPassword = ""; //AP Password
 //If the password field is empty, no password is used
 
-bool bInfoRecovered = false;
 bool bConnectedToAP = false;
 
 ESP8266WebServer server(80);
@@ -33,7 +33,17 @@ ConnectionInfo savedConnectionInfo;
 
 void handleRoot()
 {
+  server.send(200, "text/html", "<p><a href=\"/manualentry\">Enter SSID Manually</a></p><p><a href=\"/scan\">Scan for Networks</a></p>");
+}
+
+void handleManualEntry()
+{
   server.send(200, "text/html", "<form action=\"/NetworkChange\" method=\"POST\"><input type=\"text\" name=\"ssid\" placeholder=\"SSID\"></br><input type=\"password\" name=\"password\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Update\"></form>");
+}
+
+void handleScan()
+{
+  server.send(200, "text/html", "<p>Not done</p>");
 }
 
 void handleNetworkChange()
@@ -58,7 +68,9 @@ void handleNetworkChange()
 
 void configureServer(ESP8266WebServer& server)
 {
-  server.on("/", handleRoot);
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/manualentry", HTTP_GET, handleManualEntry);
+  server.on("/scan", HTTP_GET, handleScan);
   server.on("/NetworkChange", HTTP_POST, handleNetworkChange);
   MDNS.begin(sHelperNetworkServerName);
 }
@@ -140,8 +152,6 @@ void ResetConnectionInfo(ConnectionInfo* info)
 
 void setup()
 {
-  bool bInfoRecovered = false;
-
   delay(1000);
 
   EEPROM.begin(96);
