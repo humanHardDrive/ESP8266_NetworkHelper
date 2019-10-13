@@ -124,7 +124,7 @@ void handleScan()
     msg += "<td>  \
             <form action=\"/NetworkChange\" method=\"post\" \
             <input type=\"hidden\" name=\"ssid\" value=\"" + ssid + "\"/> \
-            <input type=\"submit\" name=\"Connect\" \
+            <input type=\"submit\" name=\"connect\" value=\"Connect\" \
             </form> \
             </td>";
 
@@ -261,6 +261,7 @@ void setup()
 
   //Recover connection info
   EEPROM.get(0, savedConnectionInfo);
+  WiFi.persistent(false);
 
 #ifndef DONT_REMEMBER
   if (isSavedInfoValid(&savedConnectionInfo) &&
@@ -333,9 +334,9 @@ void setup()
     {
       WiFi.softAP(sHelperNetworkSSID);
     }
-
-    WiFi.scanNetworks(true);
   }
+
+  WiFi.scanNetworks(true);
 
   configureServer(server);
 
