@@ -43,7 +43,45 @@ void handleManualEntry()
 
 void handleScan()
 {
-  server.send(200, "text/html", "<p>Not done</p>");
+  String msg = "<head><meta http-equiv='refresh' content='15'</head>";
+  bool bScanComplete = true;
+
+  int scanCount = WiFi.scanComplete();
+
+#ifdef DEBUG
+  Serial.print(scanCount); Serial.println(" networks found");
+#endif
+
+  if (scanCount < 0)
+  {
+    if(scanCount == -1) //Scan is still in progress
+      bScanComplete = false;
+    //A scanCount of -2 means that a scan was never started
+    //Use the scan complete flag to bootstrap
+      
+    scanCount = 0;
+  }
+
+  msg += "<h1>";
+  msg += scanCount;
+  msg += " Networks Found</h1>";
+
+  for (int i = 0; i < scanCount; i++)
+  {
+    // WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE
+    msg += "<p>" + WiFi.SSID(i) + "</p>";
+  }
+
+  if (bScanComplete)
+  {
+#ifdef DEBUG
+    Serial.println("Starting new scan");
+#endif
+    WiFi.scanDelete();
+    WiFi.scanNetworks(true);
+  }
+
+  server.send(200, "text/html", msg.c_str());
 }
 
 void handleNetworkChange()
