@@ -76,6 +76,13 @@ void UpdateConnectionInfo(const char* ssid, const char* password)
 #endif
 }
 
+bool isSavedInfoValid(ConnectionInfo* info)
+{
+  uint16_t checksum = CalcConnectionInfoChecksum(info);
+
+  return (checksum == info->checksum);
+}
+
 uint16_t CalcConnectionInfoChecksum(ConnectionInfo* info)
 {
   uint16_t checksum = 0;
@@ -113,6 +120,8 @@ void SoftReset()
 
 void setup()
 {
+  bool bInfoRecovered = false;
+
   delay(1000);
 
 #ifdef DEBUG
@@ -125,19 +134,49 @@ void setup()
   Serial.println(sHelperNetworkSSID);
 #endif
 
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(local_IP, gateway, subnet);
-  if (strlen(sHelperNetworkPassword))
+  //Recover connection info
+  if (ESP.rtcUserMemoryRead(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo)))
+    bInfoRecovered = true;
+#ifdef DEBUG
+  else
+    Serial.println("Failed to recover connection info");
+#endif
+
+#ifndef DONT_REMEMBER
+  if (bInfoRecovered && isSavedInfoValid(&savedConnectionInfo) &&
+      strlen(savedConnectionInfo.SSID))
   {
 #ifdef DEBUG
-    Serial.print("PSWRD: ");
-    Serial.println(sHelperNetworkPassword);
+    Serial.println("Saved info checksum matches");
+    Serial.println("Connecting to...");
+    Serial.print("SSID: "); Serial.println(savedConnectionInfo.SSID);
+    Serial.print("Password: "); Serial.println(savedConnectionInfo.password);
 #endif
-    WiFi.softAP(sHelperNetworkSSID, sHelperNetworkPassword);
   }
   else
+#endif
   {
-    WiFi.softAP(sHelperNetworkSSID);
+#ifdef DEBUG
+    Serial.println("Saved info checksum does not match");
+    Serial.println("Setting up AP");
+#endif
+
+    memset(&savedConnectionInfo, 0, sizeof(ConnectionInfo));
+
+    WiFi.mode(WIFI_AP);
+    WiFi.softAPConfig(local_IP, gateway, subnet);
+    if (strlen(sHelperNetworkPassword))
+    {
+#ifdef DEBUG
+      Serial.print("Password: ");
+      Serial.println(sHelperNetworkPassword);
+#endif
+      WiFi.softAP(sHelperNetworkSSID, sHelperNetworkPassword);
+    }
+    else
+    {
+      WiFi.softAP(sHelperNetworkSSID);
+    }
   }
 
   configureServer(server);
