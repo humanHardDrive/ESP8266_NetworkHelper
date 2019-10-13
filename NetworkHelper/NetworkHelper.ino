@@ -23,6 +23,9 @@ const char* sHelperNetworkServerName = "networkhelper";
 const char* sHelperNetworkSSID = "esp8266";
 const char* sHelperNetworkPassword = "";
 
+bool bInfoRecovered = false;
+bool bConnectedToAP = false;
+
 ESP8266WebServer server(80);
 ConnectionInfo savedConnectionInfo;
 
@@ -97,8 +100,11 @@ uint16_t CalcConnectionInfoChecksum(ConnectionInfo* info)
 
 void Cleanup()
 {
-  //TODO: detect wheter or not this is an access point
-  WiFi.softAPdisconnect (true);
+  if (bConnectedToAP)
+    WiFi.disconnect();
+  else
+    WiFi.softAPdisconnect (true);
+
   server.stop();
 }
 
@@ -118,6 +124,12 @@ void SoftReset()
   //Caught by the watchdog
   //The first reset after uploading code doesn't work
   //Everyone afterwards does
+}
+
+void ResetConnectionInfo(ConnectionInfo* info)
+{
+  memset(&savedConnectionInfo, 0, sizeof(ConnectionInfo));
+  ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
 }
 
 void setup()
@@ -161,7 +173,9 @@ void setup()
     else
       WiFi.begin(savedConnectionInfo.SSID);
 
-    while (WiFi.status() != WL_CONNECTED)
+    uint32_t connectionAttemptStart = millis();
+    while (WiFi.status() != WL_CONNECTED &&
+           (millis() - connectionAttemptStart) < 10000)
     {
       delay(500);
 #ifdef DEBUG
@@ -169,20 +183,29 @@ void setup()
 #endif
     }
 
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      bConnectedToAP = true;
 #ifdef DEBUG
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+      Serial.println("Connected");
+      Serial.print("IP address: "); Serial.println(WiFi.localIP());
 #endif
+    }
   }
-  else
-#endif
-  {
 #ifdef DEBUG
-    Serial.println("Saved info checksum does not match");
-    Serial.println("Setting up AP");
+  else
+  {
+    Serial.println("Connection info checksum doesn't match OR SSID not valid");
+  }
+#endif
 #endif
 
-    memset(&savedConnectionInfo, 0, sizeof(ConnectionInfo));
+  if (!bConnectedToAP)
+  {
+#ifndef DONT_REMEMBER
+    ResetConnectionInfo(&savedConnectionInfo);
+    ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
+#endif
 
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(local_IP, gateway, subnet);
