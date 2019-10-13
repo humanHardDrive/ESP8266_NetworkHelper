@@ -35,7 +35,7 @@ void handleNetworkChange()
 {
   //Only need the SSID to have information
   //The password field can be blank
-  if (!server.hasArg("ssid") || !server.arg("ssid"))
+  if (!server.hasArg("ssid") || !server.arg("ssid").length())
     server.send(400, "text/plain", "400: Invalid Request");
   else
   {
