@@ -39,30 +39,44 @@ void handleRoot()
 
 void handleManualEntry()
 {
-  server.send(200, "text/html", "<form action=\"/NetworkChange\" method=\"POST\"><input type=\"text\" name=\"ssid\" placeholder=\"SSID\"></br><input type=\"password\" name=\"password\" placeholder=\"Password\"></br><input type=\"submit\" value=\"Update\"></form>");
+  String msg;
+
+  msg = "<form action=\"/NetworkChange\" method=\"POST\"> \
+        <input type=\"text\" name=\"ssid\"";
+
+  if (server.hasArg("ssid"))
+    msg += "value=\"" + server.arg("ssid") + "\"";
+  else
+    msg += "placeholder=\"SSID\"";
+
+  msg += "> \
+         <input type = \"password\" name=\"password\" placeholder=\"Password\">  \
+         <input type=\"submit\" value=\"Update\"></form>";
+
+  server.send(200, "text/html",  msg);
 }
 
 String EncyptionTypeAsString(int type)
 {
-  switch(type)
+  switch (type)
   {
     case 2:
-    return "WPA/PSK";
+      return "WPA/PSK";
 
     case 4:
-    return "WPA2/PSK";
-    
+      return "WPA2/PSK";
+
     case 5:
-    return "WEP";
+      return "WEP";
 
     case 7:
-    return "NONE";
+      return "NONE";
 
     case 8:
-    return "WPA/WPA2/PSK";
-    
+      return "WPA/WPA2/PSK";
+
     default:
-    return "UNKNOWN";
+      return "UNKNOWN";
   }
 }
 
@@ -116,15 +130,19 @@ void handleScan()
     String ssid = WiFi.SSID(i);
 
     msg += "<tr>";
-    // WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE
     msg += "<td>" + ssid + "</td>";
     msg += "<td>" + EncyptionTypeAsString(WiFi.encryptionType(i)) + "</td>";
     msg += "<td>" + String(WiFi.RSSI(i)) + " dB</td>";
+    msg += "</tr>";
 
-    msg += "<td>  \
-            <form action=\"/NetworkChange\" method=\"post\" \
-            <input type=\"hidden\" name=\"ssid\" value=\"" + ssid + "\"/> \
-            <input type=\"submit\" name=\"connect\" value=\"Connect\" \
+    msg += "<td>";
+    if (WiFi.encryptionType(i) == 7)
+      msg += "<form action=\"/NetworkChange\" method=\"POST\">";
+    else
+      msg += "<form action=\"/manualentry\" method=\"POST\">";
+
+    msg += "<input type=\"hidden\" name=\"ssid\" value=\"" + ssid + "\"/> \
+            <input type=\"submit\" name=\"connect\" value=\"Connect\"> \
             </form> \
             </td>";
 
@@ -168,6 +186,7 @@ void configureServer(ESP8266WebServer& server)
 {
   server.on("/", HTTP_GET, handleRoot);
   server.on("/manualentry", HTTP_GET, handleManualEntry);
+  server.on("/manualentry", HTTP_POST, handleManualEntry);
   server.on("/scan", HTTP_GET, handleScan);
   server.on("/NetworkChange", HTTP_POST, handleNetworkChange);
   MDNS.begin(sHelperNetworkServerName);
