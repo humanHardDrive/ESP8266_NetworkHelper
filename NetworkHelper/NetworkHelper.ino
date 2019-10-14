@@ -6,8 +6,9 @@
 #include <string>
 
 //#define DONT_REMEMBER
-#define RST_BTN
 #define DEBUG
+
+#define RST_BTN_PIN   0
 
 //Access point configuration
 IPAddress local_IP(192, 168, 1, 1);
@@ -133,7 +134,6 @@ void handleScan()
     msg += "<td>" + ssid + "</td>";
     msg += "<td>" + EncyptionTypeAsString(WiFi.encryptionType(i)) + "</td>";
     msg += "<td>" + String(WiFi.RSSI(i)) + " dB</td>";
-    msg += "</tr>";
 
     msg += "<td>";
     if (WiFi.encryptionType(i) == 7)
@@ -282,6 +282,10 @@ void setup()
   EEPROM.get(0, savedConnectionInfo);
   WiFi.persistent(false);
 
+#ifdef RST_BTN_PIN
+  pinMode(RST_BTN_PIN, INPUT_PULLUP);
+#endif
+
 #ifndef DONT_REMEMBER
   if (isSavedInfoValid(&savedConnectionInfo) &&
       strlen(savedConnectionInfo.SSID))
@@ -364,5 +368,16 @@ void setup()
 
 void loop()
 {
+#ifdef RST_BTN_PIN
+  if (strlen(savedConnectionInfo.SSID) && !digitalRead(RST_BTN_PIN))
+  {
+    ResetConnectionInfo(&savedConnectionInfo);
+#ifdef DEBUG
+    Serial.println("Reset button");
+#endif
+    SoftReset();
+  }
+#endif
+
   server.handleClient();
 }
