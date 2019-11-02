@@ -5,6 +5,8 @@
 #include <EEPROM.h>
 #include <string>
 
+#include "NetworkHelper.h"
+
 //#define DONT_REMEMBER
 #define DEBUG
 
