@@ -1,0 +1,14 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+NetworkHelper KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+start				KEYWORD2
+stop				KEYWORD2
+background			KEYWORD2
+onNetworkChange		KEYWORD2
