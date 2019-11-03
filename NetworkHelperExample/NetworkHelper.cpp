@@ -1,62 +1,55 @@
 #include "NetworkHelper.h"
 
 NetworkHelper::NetworkHelper() :
-	m_LocalIP(192, 168, 1, 1),
-	m_GatewayIP(192, 168, 1, 1),
-	m_Subnet(255, 255, 255, 0),
-	m_sServerName("NetworkHelper"),
-	m_sNetworkSSID("NetworkHelper"),
-	m_sNetworkPassword("")
+	m_sServerName("NetworkHelper")
 {
+  configureServer();
 }
 
-NetworkHelper::NetworkHelper(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet) :
-	m_LocalIP(localIP),
-	m_GatewayIP(gatewayIP),
-	m_Subnet(subnet),
-	m_sServerName("NetworkHelper"),
-	m_sNetworkSSID("NetworkHelper"),
-	m_sNetworkPassword("")
+NetworkHelper::NetworkHelper(const String& sServerName) :
+  m_sServerName(sServerName)
 {
+  configureServer();
 }
-
-NetworkHelper::NetworkHelper(const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword) :
-	m_LocalIP(192, 168, 1, 1),
-	m_GatewayIP(192, 168, 1, 1),
-	m_Subnet(255, 255, 255, 0),
-	m_sServerName(sServerName),
-	m_sNetworkSSID(sNetworkSSID),
-	m_sNetworkPassword(sNetworkPassword)
-{
-}
-
-NetworkHelper::NetworkHelper(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet,
-						const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword) :
-	m_LocalIP(localIP),
-	m_GatewayIP(gatewayIP),
-	m_Subnet(subnet),
-	m_sServerName(sServerName),
-	m_sNetworkSSID(sNetworkSSID),
-	m_sNetworkPassword(sNetworkPassword)
-{
-
-}	
-
 
 NetworkHelper::~NetworkHelper()
 {
+  stop();
 }
 
 
 void NetworkHelper::start()
 {
+  NetworkHelper::start(m_sServerName);
+}
+
+void NetworkHelper::start(const String& sServerName)
+{
+  if(!m_bRunning)
+  {
+    MDNS.begin(sServerName);
+    m_Server.begin();
+    WiFi.scanNetworks(true);
+
+    m_bRunning = true;
+  }
 }
 
 
 void NetworkHelper::stop()
 {
-	WiFi.softAPdisconnect(true);
-	m_Server.stop();
+  if(m_bRunning)
+  {
+	  m_Server.stop();
+
+    m_bRunning = false;
+  }
+}
+
+
+void NetworkHelper::background()
+{
+  m_Server.handleClient();
 }
 
 
@@ -67,7 +60,6 @@ void NetworkHelper::configureServer()
 	m_Server.on("/manualentry", HTTP_POST, std::bind(&NetworkHelper::handleManualEntry, this));
 	m_Server.on("/scan", HTTP_GET, std::bind(&NetworkHelper::handleScan, this));
 	m_Server.on("/NetworkChange", HTTP_POST, std::bind(&NetworkHelper::handleNetworkChange, this));
-	MDNS.begin(m_sServerName);
 }
 
 

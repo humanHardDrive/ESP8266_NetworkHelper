@@ -12,27 +12,15 @@ class NetworkHelper
 {
 public:
 	NetworkHelper();
-	NetworkHelper(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet);
-	NetworkHelper(const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword);
-	NetworkHelper(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet,
-				const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword);
+	NetworkHelper(const String& sServerName);
 	~NetworkHelper();
 
 	void start();
-	void start(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet);
-	void start(const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword);
-	void start(const IPAddress& localIP, const IPAddress& gatewayIP, const IPAddress& subnet,
-			const String& sServerName, const String& sNetworkSSID, const String& sNetworkPassword);
+	void start(const String& sServerName);
+
+	void background();
 
 	void stop();
-
-	void setLocalIP(IPAddress ip);
-	void setGateway(IPAddress ip);
-	void setSubnet(IPAddress mask);
-
-	void setNetworkName(const String& sName);
-	void setNetworkSSID(const String& sSSID);
-	void setNetworkPassword(const String& sPassword);
 
 	void onNetworkChange(std::function<void(String, String)> fn) { m_OnNetworkChange = fn; }
 
@@ -45,8 +33,8 @@ private:
 	void handleNetworkChange();
 
 	ESP8266WebServer m_Server;
-	IPAddress m_LocalIP, m_GatewayIP, m_Subnet;
-	String m_sServerName, m_sNetworkSSID, m_sNetworkPassword;
+	String m_sServerName;
+	bool m_bRunning = false;
 
 	std::function<void(String, String)> m_OnNetworkChange;
 
