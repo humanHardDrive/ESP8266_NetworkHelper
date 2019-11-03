@@ -1,22 +1,19 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-#include <WiFiClient.h>
 #include <EEPROM.h>
 #include <string>
 
 #include "NetworkHelper.h"
 
+/*Use the DONT_REMEMBER flag to not recover infomration on startup,
+  and not to store any changes to the network configuration*/
 //#define DONT_REMEMBER
-#define DEBUG
-
-#define RST_BTN_PIN   0
 
 //Access point configuration
 IPAddress local_IP(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
+//Structure for saving the connection info to be recovred on startup
 struct ConnectionInfo
 {
   char SSID[32];
@@ -37,26 +34,16 @@ NetworkHelper helper(sHelperNetworkServerName);
 
 void UpdateConnectionInfo(const char* ssid, const char* password)
 {
-#ifndef DONT_REMEMBER
-#ifdef DEBUG
-  Serial.println(__FUNCTION__);
-#endif
-
   strcpy(savedConnectionInfo.SSID, ssid);
   strcpy(savedConnectionInfo.password, password);
   savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
 
   EEPROM.put(0, savedConnectionInfo);
-
-#ifdef DEBUG
-  Serial.print("Checksum: "); Serial.println(savedConnectionInfo.checksum);
-#endif
-
-#endif
 }
 
 bool isSavedInfoValid(ConnectionInfo* info)
 {
+  //Verify that the stored checksum matches the data
   uint16_t checksum = CalcConnectionInfoChecksum(info);
 
   return (checksum == info->checksum);
@@ -74,10 +61,17 @@ uint16_t CalcConnectionInfoChecksum(ConnectionInfo* info)
 
 void Cleanup()
 {
+  //Stop the network helper
+  helper.stop();
+
   if (bConnectedToAP)
+    //Disconnect from the current access point
     WiFi.disconnect();
   else
+    //Or stop the current access point
     WiFi.softAPdisconnect (true);
+
+  EEPROM.end();
 
   //Let the EEPROM commit to flash
   delay(100);
@@ -89,10 +83,6 @@ void SoftReset()
   delay(1000);
   //Shutdown the server and stop the access point
   Cleanup();
-
-#ifdef DEBUG
-  Serial.println(__FUNCTION__);
-#endif
 
   //Busy loop
   while (1);
@@ -111,31 +101,25 @@ void setup()
 {
   delay(1000);
 
+  //Allocate 96 bytes of EEPROM for non-volatile storage
   EEPROM.begin(96);
 
-#ifdef DEBUG
   Serial.begin(115200);
   Serial.println();
-#endif
 
   //Recover connection info
   EEPROM.get(0, savedConnectionInfo);
   WiFi.persistent(false);
 
-#ifdef RST_BTN_PIN
-  pinMode(RST_BTN_PIN, INPUT_PULLUP);
-#endif
-
 #ifndef DONT_REMEMBER
   if (isSavedInfoValid(&savedConnectionInfo) &&
       strlen(savedConnectionInfo.SSID))
   {
-#ifdef DEBUG
     Serial.println("Saved info checksum matches");
     Serial.println("Connecting to...");
     Serial.print("SSID: "); Serial.println(savedConnectionInfo.SSID);
     Serial.print("Password: "); Serial.println(savedConnectionInfo.password);
-#endif
+
     WiFi.mode(WIFI_STA);
 
     if (strlen(savedConnectionInfo.password))
@@ -148,72 +132,70 @@ void setup()
            (millis() - connectionAttemptStart) < 10000)
     {
       delay(500);
-#ifdef DEBUG
       Serial.print(".");
-#endif
     }
 
     if (WiFi.status() == WL_CONNECTED)
     {
       bConnectedToAP = true;
-#ifdef DEBUG
+
       Serial.println("Connected");
       Serial.print("IP address: "); Serial.println(WiFi.localIP());
-#endif
     }
   }
-#ifdef DEBUG
   else
-  {
     Serial.println("Connection info checksum doesn't match OR SSID not valid");
-  }
-#endif
 #endif
 
   if (!bConnectedToAP)
   {
-#ifdef DEBUG
     Serial.println("Creating AP");
     Serial.print("SSID: ");
     Serial.println(sHelperNetworkSSID);
-#endif
 
 #ifndef DONT_REMEMBER
     ResetConnectionInfo(&savedConnectionInfo);
-    ESP.rtcUserMemoryWrite(0, (uint32_t*) &savedConnectionInfo, sizeof(ConnectionInfo));
 #endif
 
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(local_IP, gateway, subnet);
-    if (strlen(sHelperNetworkPassword))
+    if (strlen(sHelperNetworkPassword)) //Password
     {
-#ifdef DEBUG
       Serial.print("Password: ");
       Serial.println(sHelperNetworkPassword);
-#endif
+
       WiFi.softAP(sHelperNetworkSSID, sHelperNetworkPassword);
     }
-    else
-    {
+    else //No password
       WiFi.softAP(sHelperNetworkSSID);
-    }
   }
 
+  //Setup lambda function to handle network change from helper
+  helper.onNetworkChange(
+    [](String ssid, String password)
+    {
+      //Update the connection info in EEPROM
+      UpdateConnectionInfo(ssid.c_str(), password.c_str());
+      //Use the watchdog to reset the device
+      SoftReset();
+    });
+
+  //Start the network helper
   helper.start();
 }
 
 void loop()
 {
-#ifdef RST_BTN_PIN
-  if (strlen(savedConnectionInfo.SSID) && !digitalRead(RST_BTN_PIN))
+  if(Serial.available())
   {
-    ResetConnectionInfo(&savedConnectionInfo);
-#ifdef DEBUG
-    Serial.println("Reset button");
-#endif
-    SoftReset();
+    if(Serial.read() == 'r')
+    {
+      Serial.println("Resetting connection info...");
+      ResetConnectionInfo(&savedConnectionInfo);
+      Serial.println("Rebooting...");
+      SoftReset();
+    }
   }
-#endif
-
+  
   helper.background();
 }
