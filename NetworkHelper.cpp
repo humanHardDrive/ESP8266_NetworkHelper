@@ -62,16 +62,23 @@ void NetworkHelper::configureServer()
 	m_Server.on("/NetworkChange", HTTP_POST, std::bind(&NetworkHelper::handleNetworkChange, this));
 	
 #ifdef MQTTHelper
+	Serial.println("?");
 	m_Server.on("/serverentry", HTTP_GET, std::bind(&NetworkHelper::handleServerEntry, this));
 	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
-	m_Server.on("/publish", HTTP_GET std::bind(&NetworkHelper::handlePublish, this));
+	m_Server.on("/publish", HTTP_GET, std::bind(&NetworkHelper::handlePublish, this));
 #endif
 }
 
 
 void NetworkHelper::handleRoot()
 {
-	m_Server.send(200, "text/html", "<p><a href=\"/manualentry\">Enter SSID Manually</a></p><p><a href=\"/scan\">Scan for Networks</a></p>");
+	m_Server.send(200, "text/html", 
+	"<p><a href=\"/manualentry\">Enter SSID Manually</a></p>"
+	"<p><a href=\"/scan\">Scan for Networks</a></p>"
+ #ifdef MQTTHelper
+	"<p><a href=\"/serverentry\">Enter MQTT Server Info</a></p>"
+ #endif
+	 );
 }
 
 void NetworkHelper::handleManualEntry()
@@ -183,3 +190,18 @@ void NetworkHelper::handleNetworkChange()
 		m_OnNetworkChange(m_Server.arg("ssid"), m_Server.arg("password"));
   }
 }
+
+#ifdef MQTTHelper
+void NetworkHelper::handleServerEntry()
+{
+	m_Server.send(200, "text/html", "<p>Hello World</p>");
+}
+
+void NetworkHelper::handleSubscriptions()
+{
+}
+
+void NetworkHelper::handlePublish()
+{
+}
+#endif

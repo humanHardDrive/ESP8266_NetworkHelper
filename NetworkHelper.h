@@ -8,6 +8,8 @@
 
 #include <string>
 
+#define MQTTHelper
+
 #ifdef MQTTHelper
 #define MQTT_STATUS_OFFSET	-4
 #endif
