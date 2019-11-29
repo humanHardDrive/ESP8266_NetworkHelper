@@ -43,6 +43,8 @@ private:
 #ifdef MQTTHelper
 	void handleServerEntry();
 	void handleTestServerConnection();
+	void handleSubscriptions();
+	void handlePublish();
 #endif
 
 	ESP8266WebServer m_Server;

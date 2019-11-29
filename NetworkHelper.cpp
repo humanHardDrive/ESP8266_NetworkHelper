@@ -60,6 +60,12 @@ void NetworkHelper::configureServer()
 	m_Server.on("/manualentry", HTTP_POST, std::bind(&NetworkHelper::handleManualEntry, this));
 	m_Server.on("/scan", HTTP_GET, std::bind(&NetworkHelper::handleScan, this));
 	m_Server.on("/NetworkChange", HTTP_POST, std::bind(&NetworkHelper::handleNetworkChange, this));
+	
+#ifdef MQTTHelper
+	m_Server.on("/serverentry", HTTP_GET, std::bind(&NetworkHelper::handleServerEntry, this));
+	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
+	m_Server.on("/publish", HTTP_GET std::bind(&NetworkHelper::handlePublish, this));
+#endif
 }
 
 
