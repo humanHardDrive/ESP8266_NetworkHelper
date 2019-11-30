@@ -64,6 +64,7 @@ void NetworkHelper::configureServer()
 #ifdef MQTTHelper
 	Serial.println("?");
 	m_Server.on("/serverentry", HTTP_GET, std::bind(&NetworkHelper::handleServerEntry, this));
+	m_Server.on("/serverchange", HTTP_POST, std::bind(&NetworkHelper::handleServerChange, this));
 	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
 	m_Server.on("/publication", HTTP_GET, std::bind(&NetworkHelper::handlePublications, this));
 #endif
@@ -73,9 +74,11 @@ void NetworkHelper::configureServer()
 void NetworkHelper::handleRoot()
 {
 	m_Server.send(200, "text/html", 
+	"<h2>Network Configuration</h2>"
 	"<p><a href=\"/manualentry\">Enter SSID Manually</a></p>"
 	"<p><a href=\"/scan\">Scan for Networks</a></p>"
  #ifdef MQTTHelper
+	"<h2>MQTT Configuration</h2>"
 	"<p><a href=\"/serverentry\">Enter MQTT Server Info</a></p>"
 	"<p><a href=\"/subscription\">View\\Edit Subscriptions</a></p>"
 	"<p><a href=\"/publication\">View\\Edit Publications</a></p>"
@@ -196,7 +199,29 @@ void NetworkHelper::handleNetworkChange()
 #ifdef MQTTHelper
 void NetworkHelper::handleServerEntry()
 {
-	m_Server.send(200, "text/html", "<p>Hello World</p>");
+  m_Server.send(200, "text/html",
+    "<form action=\"/serverchange\" method=\"POST\">"
+    "<input type=\"text\" name=\"address\" placeholder=\"Server Address\">"
+	"<input type=\"number\" name=\"port\" placeholder=\"Port\">"
+	"<input type = \"text\" name=\"user\" placeholder=\"User Name\">"
+	"<input type = \"password\" name=\"password\" placeholder=\"Password\">"
+    "<input type=\"submit\" value=\"Update\"></form>"
+	);
+}
+
+void NetworkHelper::handleServerChange()
+{
+  if (!m_Server.hasArg("address") || !m_Server.arg("address").length() ||
+	  !m_Server.hasArg("port") || !m_Server.arg("port").length())
+    m_Server.send(400, "text/plain", "400: Invalid Request");
+  else
+  {
+    m_Server.send(200, "text/html", "<h1>Updated</h1>");
+	uint16_t nPort = atoi(m_Server.arg("port").c_str());
+	
+	if(m_OnServerChange)
+		m_OnServerChange(m_Server.arg("address"), nPort, m_Server.arg("user"), m_Server.arg("password"));
+  }
 }
 
 void NetworkHelper::handleSubscriptions()

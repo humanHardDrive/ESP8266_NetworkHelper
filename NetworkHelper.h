@@ -50,6 +50,7 @@ private:
 
 #ifdef MQTTHelper
 	void handleServerEntry();
+	void handleServerChange();
 	void handleTestServerConnection();
 	void handleSubscriptions();
 	void handlePublications();
