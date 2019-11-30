@@ -22,6 +22,10 @@ struct ConnectionInfo
   char SSID[32];
   char password[32];
 
+  char mqttAddress[MAX_MQTT_PATH_LENGTH];
+  char mqttUser[MAX_MQTT_PATH_LENGTH];
+  char mqttPass[MAX_MQTT_PATH_LENGTH];
+
   char subscriptions[MAX_MQTT_SUBSCRIPTIONS][MAX_MQTT_PATH_LENGTH];
   char publications[MAX_MQTT_PUBLICATIONS][MAX_MQTT_PATH_LENGTH];
 

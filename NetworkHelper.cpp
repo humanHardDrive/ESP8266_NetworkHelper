@@ -202,7 +202,7 @@ void NetworkHelper::handleServerEntry()
   m_Server.send(200, "text/html",
     "<form action=\"/serverchange\" method=\"POST\">"
     "<input type=\"text\" name=\"address\" placeholder=\"Server Address\">"
-	"<input type=\"number\" name=\"port\" placeholder=\"Port\">"
+	"<input type=\"number\" name=\"port\" placeholder=\"Port\" value=\"1883\">"
 	"<input type = \"text\" name=\"user\" placeholder=\"User Name\">"
 	"<input type = \"password\" name=\"password\" placeholder=\"Password\">"
     "<input type=\"submit\" value=\"Update\"></form>"
