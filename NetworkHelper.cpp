@@ -65,7 +65,7 @@ void NetworkHelper::configureServer()
 	Serial.println("?");
 	m_Server.on("/serverentry", HTTP_GET, std::bind(&NetworkHelper::handleServerEntry, this));
 	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
-	m_Server.on("/publish", HTTP_GET, std::bind(&NetworkHelper::handlePublish, this));
+	m_Server.on("/publication", HTTP_GET, std::bind(&NetworkHelper::handlePublications, this));
 #endif
 }
 
@@ -77,6 +77,8 @@ void NetworkHelper::handleRoot()
 	"<p><a href=\"/scan\">Scan for Networks</a></p>"
  #ifdef MQTTHelper
 	"<p><a href=\"/serverentry\">Enter MQTT Server Info</a></p>"
+	"<p><a href=\"/subscription\">View\\Edit Subscriptions</a></p>"
+	"<p><a href=\"/publication\">View\\Edit Publications</a></p>"
  #endif
 	 );
 }
@@ -201,7 +203,7 @@ void NetworkHelper::handleSubscriptions()
 {
 }
 
-void NetworkHelper::handlePublish()
+void NetworkHelper::handlePublications()
 {
 }
 #endif

@@ -12,11 +12,18 @@ IPAddress local_IP(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
+#define MAX_MQTT_PATH_LENGTH      32
+#define MAX_MQTT_SUBSCRIPTIONS    16
+#define MAX_MQTT_PUBLICATIONS     16
+
 //Structure for saving the connection info to be recovred on startup
 struct ConnectionInfo
 {
   char SSID[32];
   char password[32];
+
+  char subscriptions[MAX_MQTT_SUBSCRIPTIONS][MAX_MQTT_PATH_LENGTH];
+  char publications[MAX_MQTT_PUBLICATIONS][MAX_MQTT_PATH_LENGTH];
 
   uint16_t checksum;
 };
@@ -100,8 +107,7 @@ void setup()
 {
   delay(1000);
 
-  //Allocate 96 bytes of EEPROM for non-volatile storage
-  EEPROM.begin(96);
+  EEPROM.begin(sizeof(ConnectionInfo));
 
   Serial.begin(115200);
   Serial.println();
