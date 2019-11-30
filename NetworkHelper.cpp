@@ -62,11 +62,16 @@ void NetworkHelper::configureServer()
 	m_Server.on("/NetworkChange", HTTP_POST, std::bind(&NetworkHelper::handleNetworkChange, this));
 	
 #ifdef MQTTHelper
-	Serial.println("?");
 	m_Server.on("/serverentry", HTTP_GET, std::bind(&NetworkHelper::handleServerEntry, this));
 	m_Server.on("/serverchange", HTTP_POST, std::bind(&NetworkHelper::handleServerChange, this));
+	
 	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
+	m_Server.on("/modifysubscription", HTTP_GET, std::bind(&NetworkHelper::handleModifySubscription, this));
+	m_Server.on("/modifysubscription", HTTP_POST, std::bind(&NetworkHelper::handleModifySubscription, this));
+	
 	m_Server.on("/publication", HTTP_GET, std::bind(&NetworkHelper::handlePublications, this));
+	m_Server.on("/modifypublication", HTTP_GET, std::bind(&NetworkHelper::handleModifyPublication, this));
+	m_Server.on("/modifypublication", HTTP_POST, std::bind(&NetworkHelper::handleModifyPublication, this));
 #endif
 }
 
@@ -226,9 +231,73 @@ void NetworkHelper::handleServerChange()
 
 void NetworkHelper::handleSubscriptions()
 {
+	m_Server.send(200, "text/html",
+		"<form action=\"/modifysubscription\" method=\"POST\">"
+		"<input type=\"text\" name=\"name\" placeholder=\"Name\">"
+		"<input type=\"hidden\" name=\"modify\" value=\"add\">"
+		"<input type=\"submit\" value=\"Update\"></form>"
+	);
+}
+
+void NetworkHelper::handleModifySubscription()
+{
+	if(!m_Server.hasArg("name") || !m_Server.arg("name").length() ||
+		!m_Server.hasArg("modify") || !m_Server.arg("modify").length())
+		m_Server.send(400, "text/plain", "400: Invalid Request");
+	else
+	{
+		if(m_Server.arg("modify") == "add")
+		{
+			m_Server.send(200, "text/html", "<h1>Subsciption added</h1>");
+			
+			if(m_OnAddSubscription)
+				m_OnAddSubscription(m_Server.arg("name"));
+		}
+		else if(m_Server.arg("modify") == "remove")
+		{
+			m_Server.send(200, "text/html", "<h1>Subsciption removed</h1>");
+			
+			if(m_OnRemoveSubscription)
+				m_OnRemoveSubscription(m_Server.arg("name"));
+		}
+		else
+			m_Server.send(400, "text/plain", "400: Invalid Request. Bad modify type");
+	}
 }
 
 void NetworkHelper::handlePublications()
 {
+	m_Server.send(200, "text/html",
+		"<form action=\"/modifypublication\" method=\"POST\">"
+		"<input type=\"text\" name=\"name\" placeholder=\"Name\">"
+		"<input type=\"hidden\" name=\"modify\" value=\"add\">"
+		"<input type=\"submit\" value=\"Update\"></form>"
+	);
+}
+
+void NetworkHelper::handleModifyPublication()
+{
+	if(!m_Server.hasArg("name") || !m_Server.arg("name").length() ||
+		!m_Server.hasArg("modify") || !m_Server.arg("modify").length())
+		m_Server.send(400, "text/plain", "400: Invalid Request");
+	else
+	{
+		if(m_Server.arg("modify") == "add")
+		{
+			m_Server.send(200, "text/html", "<h1>Publication added</h1>");
+			
+			if(m_OnAddPublication)
+				m_OnAddPublication(m_Server.arg("name"));
+		}
+		else if(m_Server.arg("modify") == "remove")
+		{
+			m_Server.send(200, "text/html", "<h1>Publication removed</h1>");
+			
+			if(m_OnRemovePublication)
+				m_OnRemovePublication(m_Server.arg("name"));
+		}
+		else
+			m_Server.send(400, "text/plain", "400: Invalid Request. Bad modify type");
+	}
 }
 #endif

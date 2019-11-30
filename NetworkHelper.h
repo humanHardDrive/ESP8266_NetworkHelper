@@ -33,7 +33,7 @@ public:
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
 	void onAddSubscription(std::function<void(String)> fn) { m_OnAddSubscription = fn; }
-	void onRemoveSubsciption(std::function<void(String)> fn) { m_OnRemoveSubscription = fn; }
+	void onRemoveSubscription(std::function<void(String)> fn) { m_OnRemoveSubscription = fn; }
 	
 	void onAddPublication(std::function<void(String)> fn) { m_OnAddPublication = fn; }
 	void onRemovePublication(std::function<void(String)> fn) { m_OnRemovePublication = fn; }
@@ -51,9 +51,14 @@ private:
 #ifdef MQTTHelper
 	void handleServerEntry();
 	void handleServerChange();
+	
 	void handleTestServerConnection();
+	
 	void handleSubscriptions();
+	void handleModifySubscription();
+	
 	void handlePublications();
+	void handleModifyPublication();
 #endif
 
 	ESP8266WebServer m_Server;

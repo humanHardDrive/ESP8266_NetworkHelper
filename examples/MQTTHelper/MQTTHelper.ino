@@ -202,6 +202,34 @@ void setup()
     Serial.print(" Pass ");
   });
 
+  helper.onAddSubscription(
+    [](String name)
+  {
+    Serial.print("Add subscription ");
+    Serial.println(name);
+  });
+
+  helper.onRemoveSubscription(
+    [](String name)
+  {
+    Serial.print("Remove subscription ");
+    Serial.println(name);
+  });
+
+  helper.onAddPublication(
+    [](String name)
+  {
+    Serial.print("Add publication ");
+    Serial.print(name);
+  });
+
+  helper.onRemovePublication(
+    [](String name)
+  {
+    Serial.print("Remove publication ");
+    Serial.print(name);
+  });
+
   //Start the network helper
   helper.start();
 }
