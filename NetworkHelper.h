@@ -30,13 +30,24 @@ public:
 
 	void onNetworkChange(std::function<void(String, String)> fn) { m_OnNetworkChange = fn; }
 #ifdef MQTTHelper
+	void setSubList(char** list);
+	void setPubList(char** list);
+
+	void incSubCount() { m_nSubCount++; }
+	void decSubCount() { if(m_nSubCount > 0) m_nSubCount--; }
+	void setSubCount(uint8_t count) { m_nSubCount = count; }
+	
+	void incPubCount() { m_nPubCount++; }
+	void decPubCount() { if(m_nPubCount > 0) m_nPubCount--; }
+	void setPubCount(uint8_t count) { m_nPubCount = count; }
+
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
-	void onAddSubscription(std::function<void(String)> fn) { m_OnAddSubscription = fn; }
-	void onRemoveSubscription(std::function<void(String)> fn) { m_OnRemoveSubscription = fn; }
+	void onAddSub(std::function<void(String)> fn) { m_OnAddSubscription = fn; }
+	void onRemoveSub(std::function<void(String)> fn) { m_OnRemoveSubscription = fn; }
 	
-	void onAddPublication(std::function<void(String)> fn) { m_OnAddPublication = fn; }
-	void onRemovePublication(std::function<void(String)> fn) { m_OnRemovePublication = fn; }
+	void onAddPub(std::function<void(String)> fn) { m_OnAddPublication = fn; }
+	void onRemovePub(std::function<void(String)> fn) { m_OnRemovePublication = fn; }
 #endif
 
 private:
@@ -67,6 +78,11 @@ private:
 
 	std::function<void(String, String)> m_OnNetworkChange;
 #ifdef MQTTHelper
+	char** m_SubsciptionList;
+	char** m_PublicationList;
+
+	uint8_t m_nSubCount, m_nPubCount;
+
 	std::function<void(String, uint16_t, String, String)> m_OnServerChange;
 	
 	std::function<void(String)> m_OnAddSubscription;

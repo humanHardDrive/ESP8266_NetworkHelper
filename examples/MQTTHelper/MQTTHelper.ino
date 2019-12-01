@@ -202,28 +202,28 @@ void setup()
     Serial.print(" Pass ");
   });
 
-  helper.onAddSubscription(
+  helper.onAddSub(
     [](String name)
   {
     Serial.print("Add subscription ");
     Serial.println(name);
   });
 
-  helper.onRemoveSubscription(
+  helper.onRemoveSub(
     [](String name)
   {
     Serial.print("Remove subscription ");
     Serial.println(name);
   });
 
-  helper.onAddPublication(
+  helper.onAddPub(
     [](String name)
   {
     Serial.print("Add publication ");
     Serial.print(name);
   });
 
-  helper.onRemovePublication(
+  helper.onRemovePub(
     [](String name)
   {
     Serial.print("Remove publication ");
