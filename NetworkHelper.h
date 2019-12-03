@@ -19,6 +19,10 @@ class NetworkHelper
 public:
 	NetworkHelper();
 	NetworkHelper(const String& sServerName);
+#ifdef MQTTHelper
+	NetworkHelper(char** pPubList, char** pSubList);
+	NetworkHelper(const String& sServerName, char** pPubList, char** pSubList);
+#endif
 	~NetworkHelper();
 
 	void start();
@@ -78,8 +82,8 @@ private:
 
 	std::function<void(String, String)> m_OnNetworkChange;
 #ifdef MQTTHelper
-	char** m_SubsciptionList;
-	char** m_PublicationList;
+	char** m_pPubList;
+	char** m_pSubList;
 
 	uint8_t m_nSubCount, m_nPubCount;
 

@@ -12,6 +12,22 @@ NetworkHelper::NetworkHelper(const String& sServerName) :
   configureServer();
 }
 
+#ifdef MQTTHelper
+NetworkHelper::NetworkHelper(char** pPubList, char** pSubList) :
+	m_sServerName("NetworkHelper"),
+	m_pPubList(pPubList),
+	m_pSubList(pSubList)
+{
+}
+
+NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pSubList) :
+	m_sServerName(sServerName),
+	m_pPubList(pPubList),
+	m_pSubList(pSubList)
+{
+}
+#endif
+
 NetworkHelper::~NetworkHelper()
 {
   stop();

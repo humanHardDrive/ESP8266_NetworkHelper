@@ -40,7 +40,7 @@ const char* sHelperNetworkPassword = ""; //AP Password
 bool bConnectedToAP = false;
 
 ConnectionInfo savedConnectionInfo;
-NetworkHelper helper(sHelperNetworkServerName);
+NetworkHelper helper(sHelperNetworkServerName, (char**)savedConnectionInfo.subscriptions, (char**)savedConnectionInfo.publications);
 
 void UpdateConnectionInfo(const char* ssid, const char* password)
 {
