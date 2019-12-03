@@ -13,17 +13,23 @@ NetworkHelper::NetworkHelper(const String& sServerName) :
 }
 
 #ifdef MQTTHelper
-NetworkHelper::NetworkHelper(char** pPubList, char** pSubList) :
+NetworkHelper::NetworkHelper(char** pPubList, char** pSubList, 
+								uint8_t nMaxPubCount, uint8_t nMaxSubCount) :
 	m_sServerName("NetworkHelper"),
 	m_pPubList(pPubList),
-	m_pSubList(pSubList)
+	m_pSubList(pSubList),
+	m_nMaxPubCount(nMaxPubCount),
+	m_nMaxSubCount(nMaxSubCount)
 {
 }
 
-NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pSubList) :
+NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pSubList,
+								uint8_t nMaxPubCount, uint8_t nMaxSubCount) :
 	m_sServerName(sServerName),
 	m_pPubList(pPubList),
-	m_pSubList(pSubList)
+	m_pSubList(pSubList),
+	m_nMaxPubCount(nMaxPubCount),
+	m_nMaxSubCount(nMaxSubCount)
 {
 }
 #endif
@@ -283,6 +289,26 @@ void NetworkHelper::handleModifySubscription()
 
 void NetworkHelper::handlePublications()
 {
+	String msg;
+	
+	if(m_nMaxPubCount)
+	{
+	  msg += "<table>"
+			 "<tr>"
+			 "<th>Subscription</th>"
+			 "<th>Encryption</th>"
+			 "<th>RSSI</th>"
+			 "<th></th>"
+			 "</tr>";
+		
+		for(uint8_t i = 0; i < m_nMaxPubCount; i++)
+		{
+			
+		}
+		
+		msg += "</table>";
+	}
+	
 	m_Server.send(200, "text/html",
 		"<form action=\"/modifypublication\" method=\"POST\">"
 		"<input type=\"text\" name=\"name\" placeholder=\"Name\">"

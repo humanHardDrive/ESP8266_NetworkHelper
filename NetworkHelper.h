@@ -20,8 +20,8 @@ public:
 	NetworkHelper();
 	NetworkHelper(const String& sServerName);
 #ifdef MQTTHelper
-	NetworkHelper(char** pPubList, char** pSubList);
-	NetworkHelper(const String& sServerName, char** pPubList, char** pSubList);
+	NetworkHelper(char** pPubList, char** pSubList, uint8_t nMaxPubCount, uint8_t nMaxSubCount);
+	NetworkHelper(const String& sServerName, char** pPubList, char** pSubList, uint8_t nMaxPubCount, uint8_t nMaxSubCount);
 #endif
 	~NetworkHelper();
 
@@ -36,14 +36,6 @@ public:
 #ifdef MQTTHelper
 	void setSubList(char** list);
 	void setPubList(char** list);
-
-	void incSubCount() { m_nSubCount++; }
-	void decSubCount() { if(m_nSubCount > 0) m_nSubCount--; }
-	void setSubCount(uint8_t count) { m_nSubCount = count; }
-	
-	void incPubCount() { m_nPubCount++; }
-	void decPubCount() { if(m_nPubCount > 0) m_nPubCount--; }
-	void setPubCount(uint8_t count) { m_nPubCount = count; }
 
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
@@ -85,7 +77,7 @@ private:
 	char** m_pPubList;
 	char** m_pSubList;
 
-	uint8_t m_nSubCount, m_nPubCount;
+	uint8_t m_nMaxSubCount, m_nMaxPubCount;
 
 	std::function<void(String, uint16_t, String, String)> m_OnServerChange;
 	
