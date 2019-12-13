@@ -1,1 +1,2 @@
-# ESP8266_NetworkHelper
+# ESP8266 Network Helper
+ESP8266 Arduino library that eliminates the need to hard code access point connection info into your projects. The library creates a web server that allows for manual entry of connection info, or by scanning for networks.
