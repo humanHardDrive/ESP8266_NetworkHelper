@@ -202,32 +202,22 @@ void setup()
     Serial.print(" Pass ");
   });
 
-  helper.onAddSub(
-    [](String name)
+  helper.onSubChange(
+    [](String sAlias, String sSubName)
   {
-    Serial.print("Add subscription ");
-    Serial.println(name);
+    Serial.println("Sub name change");
+    Serial.print(sAlias);
+    Serial.print(" changed to ");
+    Serial.println(sSubName);
   });
 
-  helper.onRemoveSub(
-    [](String name)
+  helper.onPubChange(
+    [](String sAlias, String sPubName)
   {
-    Serial.print("Remove subscription ");
-    Serial.println(name);
-  });
-
-  helper.onAddPub(
-    [](String name)
-  {
-    Serial.print("Add publication ");
-    Serial.print(name);
-  });
-
-  helper.onRemovePub(
-    [](String name)
-  {
-    Serial.print("Remove publication ");
-    Serial.print(name);
+    Serial.println("Pub name change");
+    Serial.print(sAlias);
+    Serial.print(" changed to ");
+    Serial.println(sPubName);
   });
 
   //Start the network helper

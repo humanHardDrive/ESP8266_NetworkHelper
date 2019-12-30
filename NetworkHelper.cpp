@@ -13,21 +13,25 @@ NetworkHelper::NetworkHelper(const String& sServerName) :
 }
 
 #ifdef MQTTHelper
-NetworkHelper::NetworkHelper(char** pPubList, char** pSubList, 
-								uint8_t nMaxPubCount, uint8_t nMaxSubCount) :
+NetworkHelper::NetworkHelper(char** pPubList, char** pPubAliasList, uint8_t nMaxPubCount, 
+							 char** pSubList, char** pSubAliasList, uint8_t nMaxSubCount) :
 	m_sServerName("NetworkHelper"),
 	m_pPubList(pPubList),
+	m_pPubAliasList(pPubAliasList),
 	m_pSubList(pSubList),
+	m_pSubAliasList(pSubAliasList),
 	m_nMaxPubCount(nMaxPubCount),
 	m_nMaxSubCount(nMaxSubCount)
 {
 }
 
-NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pSubList,
-								uint8_t nMaxPubCount, uint8_t nMaxSubCount) :
+NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pPubAliasList, uint8_t nMaxPubCount, 
+							 char** pSubList, char** pSubAliasList, uint8_t nMaxSubCount) :
 	m_sServerName(sServerName),
 	m_pPubList(pPubList),
+	m_pPubAliasList(pPubAliasList),
 	m_pSubList(pSubList),
+	m_pSubAliasList(pSubAliasList),
 	m_nMaxPubCount(nMaxPubCount),
 	m_nMaxSubCount(nMaxSubCount)
 {

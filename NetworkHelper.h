@@ -20,8 +20,8 @@ public:
 	NetworkHelper();
 	NetworkHelper(const String& sServerName);
 #ifdef MQTTHelper
-	NetworkHelper(char** pPubList, char** pSubList, uint8_t nMaxPubCount, uint8_t nMaxSubCount);
-	NetworkHelper(const String& sServerName, char** pPubList, char** pSubList, uint8_t nMaxPubCount, uint8_t nMaxSubCount);
+	NetworkHelper(char** pPubList, char** pPubAliasList, uint8_t nMaxPubCount, char** pSubList, char** pSubAliasList, uint8_t nMaxSubCount);
+	NetworkHelper(const String& sServerName, char** pPubList, char** pPubAliasList, uint8_t nMaxPubCount, char** pSubList, char** pSubAliasList, uint8_t nMaxSubCount);
 #endif
 	~NetworkHelper();
 
@@ -34,16 +34,18 @@ public:
 
 	void onNetworkChange(std::function<void(String, String)> fn) { m_OnNetworkChange = fn; }
 #ifdef MQTTHelper
+	/*Publications and subscriptions work by using an alias to the user software. The user implements
+	an alias for a pub/sub name that can be mapped by using the network helper.*/
 	void setSubList(char** list);
+	void setSubAliasList(char** list);
+	
 	void setPubList(char** list);
+	void setPubAliasList(char** list);
 
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
-	void onAddSub(std::function<void(String)> fn) { m_OnAddSubscription = fn; }
-	void onRemoveSub(std::function<void(String)> fn) { m_OnRemoveSubscription = fn; }
-	
-	void onAddPub(std::function<void(String)> fn) { m_OnAddPublication = fn; }
-	void onRemovePub(std::function<void(String)> fn) { m_OnRemovePublication = fn; }
+	void onSubChange(std::function<void(String, String)> fn) { m_OnSubChange = fn; }
+	void onPubChange(std::function<void(String, String)> fn) { m_OnPubChange = fn; }
 #endif
 
 private:
@@ -74,18 +76,15 @@ private:
 
 	std::function<void(String, String)> m_OnNetworkChange;
 #ifdef MQTTHelper
-	char** m_pPubList;
-	char** m_pSubList;
+	char **m_pPubList, **m_pPubAliasList;
+	char **m_pSubList, **m_pSubAliasList;
 
 	uint8_t m_nMaxSubCount, m_nMaxPubCount;
 
 	std::function<void(String, uint16_t, String, String)> m_OnServerChange;
 	
-	std::function<void(String)> m_OnAddSubscription;
-	std::function<void(String)> m_OnRemoveSubscription;
-	
-	std::function<void(String)> m_OnAddPublication;
-	std::function<void(String)> m_OnRemovePublication;
+	std::function<void(String, String)> m_OnSubChange;
+	std::function<void(String, String)> m_OnPubChange;
 #endif
 
 	const String ENCRYPTION_NAME[9] =
