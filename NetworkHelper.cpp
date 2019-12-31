@@ -269,6 +269,12 @@ void NetworkHelper::handlePublications()
 {
 	String msg;
 	
+	if(m_Server.hasArg("alias") && m_Server.hasArg("name"))
+	{
+		if(m_OnPubChange)
+			m_OnPubChange(m_Server.arg("alias"), m_Server.arg("name"));
+	}
+	
 	if(m_nPubCount)
 	{
 	  msg += "<table>"
