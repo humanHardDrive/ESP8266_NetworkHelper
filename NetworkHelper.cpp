@@ -20,9 +20,10 @@ NetworkHelper::NetworkHelper(char** pPubList, char** pPubAliasList, uint8_t nMax
 	m_pPubAliasList(pPubAliasList),
 	m_pSubList(pSubList),
 	m_pSubAliasList(pSubAliasList),
-	m_nMaxPubCount(nMaxPubCount),
-	m_nMaxSubCount(nMaxSubCount)
+	m_nPubCount(nMaxPubCount),
+	m_nSubCount(nMaxSubCount)
 {
+	configureServer();
 }
 
 NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** pPubAliasList, uint8_t nMaxPubCount, 
@@ -32,9 +33,10 @@ NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** 
 	m_pPubAliasList(pPubAliasList),
 	m_pSubList(pSubList),
 	m_pSubAliasList(pSubAliasList),
-	m_nMaxPubCount(nMaxPubCount),
-	m_nMaxSubCount(nMaxSubCount)
+	m_nPubCount(nMaxPubCount),
+	m_nSubCount(nMaxSubCount)
 {
+	configureServer();
 }
 #endif
 
@@ -92,12 +94,10 @@ void NetworkHelper::configureServer()
 	m_Server.on("/serverchange", HTTP_POST, std::bind(&NetworkHelper::handleServerChange, this));
 	
 	m_Server.on("/subscription", HTTP_GET, std::bind(&NetworkHelper::handleSubscriptions, this));
-	m_Server.on("/modifysubscription", HTTP_GET, std::bind(&NetworkHelper::handleModifySubscription, this));
-	m_Server.on("/modifysubscription", HTTP_POST, std::bind(&NetworkHelper::handleModifySubscription, this));
+	m_Server.on("/subscription", HTTP_POST, std::bind(&NetworkHelper::handleSubscriptions, this));
 	
 	m_Server.on("/publication", HTTP_GET, std::bind(&NetworkHelper::handlePublications, this));
-	m_Server.on("/modifypublication", HTTP_GET, std::bind(&NetworkHelper::handleModifyPublication, this));
-	m_Server.on("/modifypublication", HTTP_POST, std::bind(&NetworkHelper::handleModifyPublication, this));
+	m_Server.on("/publication", HTTP_POST, std::bind(&NetworkHelper::handlePublications, this));
 #endif
 }
 
@@ -265,85 +265,51 @@ void NetworkHelper::handleSubscriptions()
 	);
 }
 
-void NetworkHelper::handleModifySubscription()
-{
-	if(!m_Server.hasArg("name") || !m_Server.arg("name").length() ||
-		!m_Server.hasArg("modify") || !m_Server.arg("modify").length())
-		m_Server.send(400, "text/plain", "400: Invalid Request");
-	else
-	{
-		if(m_Server.arg("modify") == "add")
-		{
-			m_Server.send(200, "text/html", "<h1>Subsciption added</h1>");
-			
-			if(m_OnAddSubscription)
-				m_OnAddSubscription(m_Server.arg("name"));
-		}
-		else if(m_Server.arg("modify") == "remove")
-		{
-			m_Server.send(200, "text/html", "<h1>Subsciption removed</h1>");
-			
-			if(m_OnRemoveSubscription)
-				m_OnRemoveSubscription(m_Server.arg("name"));
-		}
-		else
-			m_Server.send(400, "text/plain", "400: Invalid Request. Bad modify type");
-	}
-}
-
 void NetworkHelper::handlePublications()
 {
 	String msg;
 	
-	if(m_nMaxPubCount)
+	if(m_nPubCount)
 	{
 	  msg += "<table>"
 			 "<tr>"
-			 "<th>Subscription</th>"
-			 "<th>Encryption</th>"
-			 "<th>RSSI</th>"
-			 "<th></th>"
+			 "<th>Alias</th>"
+			 "<th>Publication Name</th>"
+			 "<th>Update</th>"
 			 "</tr>";
 		
-		for(uint8_t i = 0; i < m_nMaxPubCount; i++)
+		for(uint8_t i = 0; i < m_nPubCount; i++)
 		{
+			msg +=  "<form action=\"/publication\" method=\"POST\""
+					"<tr>";
 			
+			/*Add the alias as a hidden so that it can be passed pack in the post*/
+			msg +=  "<td>";
+			msg +=  m_pPubAliasList[i];	
+			msg +=  "<input type=\"hidden\" name=\"alias\" value=\"";
+			msg +=  m_pPubAliasList[i];
+			msg +=  "\">";
+			msg +=  "</td>";
+			
+			/*Show the current value of the publication*/
+			msg +=  "<td>"
+					"<input type=\"text\" name=\"name\" value=\"";
+			msg +=  m_pPubList[i];
+			msg +=  "\">"
+					"</td>";
+			
+			/*Add the button*/
+			msg +=	"<td>"
+					"<input type=\"submit\" value=\"Update\">"
+					"</td>";
+			
+			msg +=  "</tr>"
+					"</form>";
 		}
 		
 		msg += "</table>";
 	}
 	
-	m_Server.send(200, "text/html",
-		"<form action=\"/modifypublication\" method=\"POST\">"
-		"<input type=\"text\" name=\"name\" placeholder=\"Name\">"
-		"<input type=\"hidden\" name=\"modify\" value=\"add\">"
-		"<input type=\"submit\" value=\"Update\"></form>"
-	);
-}
-
-void NetworkHelper::handleModifyPublication()
-{
-	if(!m_Server.hasArg("name") || !m_Server.arg("name").length() ||
-		!m_Server.hasArg("modify") || !m_Server.arg("modify").length())
-		m_Server.send(400, "text/plain", "400: Invalid Request");
-	else
-	{
-		if(m_Server.arg("modify") == "add")
-		{
-			m_Server.send(200, "text/html", "<h1>Publication added</h1>");
-			
-			if(m_OnAddPublication)
-				m_OnAddPublication(m_Server.arg("name"));
-		}
-		else if(m_Server.arg("modify") == "remove")
-		{
-			m_Server.send(200, "text/html", "<h1>Publication removed</h1>");
-			
-			if(m_OnRemovePublication)
-				m_OnRemovePublication(m_Server.arg("name"));
-		}
-		else
-			m_Server.send(400, "text/plain", "400: Invalid Request. Bad modify type");
-	}
+	m_Server.send(200, "text/html", msg);
 }
 #endif

@@ -39,8 +39,25 @@ const char* sHelperNetworkPassword = ""; //AP Password
 
 bool bConnectedToAP = false;
 
+char* pubAlias[4] =
+{
+  "LIGHT_1"
+  "LIGHT_2",
+  "SWITCH_1",
+  "SWITCH_2"
+};
+
+char* subAlias[4] =
+{
+  "TEMPERATURE",
+  "LIGHT",
+  "HUMIDITY",
+  "OCCUPANT"
+};
+
 ConnectionInfo savedConnectionInfo;
-NetworkHelper helper(sHelperNetworkServerName, (char**)savedConnectionInfo.subscriptions, (char**)savedConnectionInfo.publications, 0, 0);
+NetworkHelper helper(sHelperNetworkServerName, (char**)savedConnectionInfo.subscriptions, (char**)subAlias, 4,
+                     (char**)savedConnectionInfo.publications, (char**)pubAlias, 4);
 
 void UpdateConnectionInfo(const char* ssid, const char* password)
 {

@@ -63,11 +63,8 @@ private:
 	
 	void handleTestServerConnection();
 	
-	void handleSubscriptions();
-	void handleModifySubscription();
-	
+	void handleSubscriptions();	
 	void handlePublications();
-	void handleModifyPublication();
 #endif
 
 	ESP8266WebServer m_Server;
@@ -79,7 +76,7 @@ private:
 	char **m_pPubList, **m_pPubAliasList;
 	char **m_pSubList, **m_pSubAliasList;
 
-	uint8_t m_nMaxSubCount, m_nMaxPubCount;
+	uint8_t m_nSubCount, m_nPubCount;
 
 	std::function<void(String, uint16_t, String, String)> m_OnServerChange;
 	
