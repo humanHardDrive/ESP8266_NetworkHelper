@@ -220,19 +220,19 @@ void setup()
   });
 
   helper.onSubChange(
-    [](String sAlias, String sSubName)
+    [](uint8_t nIndex, String sSubName)
   {
     Serial.println("Sub name change");
-    Serial.print(sAlias);
+    Serial.print(nIndex);
     Serial.print(" changed to ");
     Serial.println(sSubName);
   });
 
   helper.onPubChange(
-    [](String sAlias, String sPubName)
+    [](uint8_t nIndex, String sPubName)
   {
     Serial.println("Pub name change");
-    Serial.print(sAlias);
+    Serial.print(nIndex);
     Serial.print(" changed to ");
     Serial.println(sPubName);
     

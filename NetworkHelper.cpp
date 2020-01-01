@@ -270,14 +270,14 @@ void NetworkHelper::handlePublications()
 	handlePubSubList(m_pPubAliasList, m_pPubList, m_nPubCount, "Publication", "/publication", m_OnPubChange);
 }
 
-void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(String, String)> callbackFn)
+void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(uint8_t, String)> callbackFn)
 {
 	String msg;
 	
-	if(m_Server.hasArg("alias") && m_Server.hasArg("name"))
+	if(m_Server.hasArg("index") && m_Server.hasArg("name"))
 	{
 		if(callbackFn)
-			callbackFn(m_Server.arg("alias"), m_Server.arg("name"));
+			callbackFn(atoi(m_Server.arg("index").c_str()), m_Server.arg("name"));
 	}
 	
 	if(nCount)
@@ -301,8 +301,8 @@ void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_
 			/*Add the alias as a hidden so that it can be passed pack in the post*/
 			msg +=  "<td>";
 			msg +=  pAliasList[i];	
-			msg +=  "<input type=\"hidden\" name=\"alias\" value=\"";
-			msg +=  pAliasList[i];
+			msg +=  "<input type=\"hidden\" name=\"index\" value=\"";
+			msg +=  i;
 			msg +=  "\">";
 			msg +=  "</td>";
 			

@@ -44,8 +44,8 @@ public:
 
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
-	void onSubChange(std::function<void(String, String)> fn) { m_OnSubChange = fn; }
-	void onPubChange(std::function<void(String, String)> fn) { m_OnPubChange = fn; }
+	void onSubChange(std::function<void(uint8_t, String)> fn) { m_OnSubChange = fn; }
+	void onPubChange(std::function<void(uint8_t, String)> fn) { m_OnPubChange = fn; }
 #endif
 
 private:
@@ -65,7 +65,7 @@ private:
 	
 	void handleSubscriptions();	
 	void handlePublications();
-	void handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(String, String)> callbackFn);
+	void handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(uint8_t, String)> callbackFn);
 #endif
 
 	ESP8266WebServer m_Server;
@@ -81,8 +81,8 @@ private:
 
 	std::function<void(String, uint16_t, String, String)> m_OnServerChange;
 	
-	std::function<void(String, String)> m_OnSubChange;
-	std::function<void(String, String)> m_OnPubChange;
+	std::function<void(uint8_t, String)> m_OnSubChange;
+	std::function<void(uint8_t, String)> m_OnPubChange;
 #endif
 
 	const String ENCRYPTION_NAME[9] =
