@@ -41,7 +41,7 @@ bool bConnectedToAP = false;
 
 char* pubAlias[4] =
 {
-  "LIGHT_1"
+  "LIGHT_1",
   "LIGHT_2",
   "SWITCH_1",
   "SWITCH_2"

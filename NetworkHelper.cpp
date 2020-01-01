@@ -257,12 +257,7 @@ void NetworkHelper::handleServerChange()
 
 void NetworkHelper::handleSubscriptions()
 {
-	m_Server.send(200, "text/html",
-		"<form action=\"/modifysubscription\" method=\"POST\">"
-		"<input type=\"text\" name=\"name\" placeholder=\"Name\">"
-		"<input type=\"hidden\" name=\"modify\" value=\"add\">"
-		"<input type=\"submit\" value=\"Update\"></form>"
-	);
+	handlePubSubList(m_pSubAliasList, m_pSubList, m_nSubCount, "Subscription", "/subscription", m_OnSubChange);
 }
 
 void NetworkHelper::handlePublications()
@@ -285,7 +280,7 @@ void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_
 	  msg += "<table>"
 			 "<tr>"
 			 "<th>Alias</th>"
-			 "<th>Publication";
+			 "<th>";
 	  msg += sName;
 	  msg += " Name</th>"
 			 "<th>Update</th>"
