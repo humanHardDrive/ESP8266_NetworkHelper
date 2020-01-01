@@ -267,40 +267,49 @@ void NetworkHelper::handleSubscriptions()
 
 void NetworkHelper::handlePublications()
 {
+	handlePubSubList(m_pPubAliasList, m_pPubList, m_nPubCount, "Publication", "/publication", m_OnPubChange);
+}
+
+void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(String, String)> callbackFn)
+{
 	String msg;
 	
 	if(m_Server.hasArg("alias") && m_Server.hasArg("name"))
 	{
-		if(m_OnPubChange)
-			m_OnPubChange(m_Server.arg("alias"), m_Server.arg("name"));
+		if(callbackFn)
+			callbackFn(m_Server.arg("alias"), m_Server.arg("name"));
 	}
 	
-	if(m_nPubCount)
+	if(nCount)
 	{
 	  msg += "<table>"
 			 "<tr>"
 			 "<th>Alias</th>"
-			 "<th>Publication Name</th>"
+			 "<th>Publication";
+	  msg += sName;
+	  msg += " Name</th>"
 			 "<th>Update</th>"
 			 "</tr>";
 		
-		for(uint8_t i = 0; i < m_nPubCount; i++)
+		for(uint8_t i = 0; i < nCount; i++)
 		{
-			msg +=  "<form action=\"/publication\" method=\"POST\""
+			msg +=  "<form action=\"";
+			msg += sPage;
+			msg += "\" method=\"POST\""
 					"<tr>";
 			
 			/*Add the alias as a hidden so that it can be passed pack in the post*/
 			msg +=  "<td>";
-			msg +=  m_pPubAliasList[i];	
+			msg +=  pAliasList[i];	
 			msg +=  "<input type=\"hidden\" name=\"alias\" value=\"";
-			msg +=  m_pPubAliasList[i];
+			msg +=  pAliasList[i];
 			msg +=  "\">";
 			msg +=  "</td>";
 			
 			/*Show the current value of the publication*/
 			msg +=  "<td>"
 					"<input type=\"text\" name=\"name\" value=\"";
-			msg +=  m_pPubList[i];
+			msg +=  pNameList[i];
 			msg +=  "\">"
 					"</td>";
 			
@@ -317,5 +326,5 @@ void NetworkHelper::handlePublications()
 	}
 	
 	m_Server.send(200, "text/html", msg);
-}
+}	
 #endif

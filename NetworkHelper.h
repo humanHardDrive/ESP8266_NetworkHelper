@@ -65,6 +65,7 @@ private:
 	
 	void handleSubscriptions();	
 	void handlePublications();
+	void handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(String, String)> callbackFn);
 #endif
 
 	ESP8266WebServer m_Server;

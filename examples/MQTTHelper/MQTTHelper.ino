@@ -235,6 +235,7 @@ void setup()
     Serial.print(sAlias);
     Serial.print(" changed to ");
     Serial.println(sPubName);
+    
   });
 
   //Start the network helper
