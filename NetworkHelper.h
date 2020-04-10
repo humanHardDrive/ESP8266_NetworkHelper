@@ -36,11 +36,13 @@ public:
 #ifdef MQTTHelper
 	/*Publications and subscriptions work by using an alias to the user software. The user implements
 	an alias for a pub/sub name that can be mapped by using the network helper.*/
-	void setSubList(char** list);
-	void setSubAliasList(char** list);
+	void setSubList(char** list) { m_pSubList = list; }
+	void setSubAliasList(char** list) { m_pSubAliasList = list; }
+	void setSubCount(uint8_t nMaxSubCount) { m_nSubCount = nMaxSubCount; }
 	
-	void setPubList(char** list);
-	void setPubAliasList(char** list);
+	void setPubList(char** list) { m_pPubList = list; }
+	void setPubAliasList(char** list) { m_pPubAliasList = list; }
+	void setPubCount(uint8_t nMaxPubCount) { m_nPubCount = nMaxPubCount; }
 
 	void onServerChange(std::function<void(String, uint16_t, String, String)> fn) { m_OnServerChange = fn; }
 	
