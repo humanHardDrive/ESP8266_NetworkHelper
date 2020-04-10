@@ -288,33 +288,36 @@ void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_
 		
 		for(uint8_t i = 0; i < nCount; i++)
 		{
-			msg +=  "<form action=\"";
-			msg += sPage;
-			msg += "\" method=\"POST\""
-					"<tr>";
-			
-			/*Add the alias as a hidden so that it can be passed pack in the post*/
-			msg +=  "<td>";
-			msg +=  pAliasList[i];	
-			msg +=  "<input type=\"hidden\" name=\"index\" value=\"";
-			msg +=  i;
-			msg +=  "\">";
-			msg +=  "</td>";
-			
-			// /*Show the current value of the publication*/
-			msg +=  "<td>"
-					"<input type=\"text\" name=\"name\" value=\"";
-			msg +=  pNameList[i];
-			msg +=  "\">"
-					"</td>";
-			
-			/*Add the button*/
-			msg +=	"<td>"
-					"<input type=\"submit\" value=\"Update\">"
-					"</td>";
-			
-			msg +=  "</tr>"
-					"</form>";
+			if(pAliasList[i][0])
+			{
+				msg +=  "<form action=\"";
+				msg += sPage;
+				msg += "\" method=\"POST\""
+						"<tr>";
+				
+				/*Add the alias as a hidden so that it can be passed pack in the post*/
+				msg +=  "<td>";
+				msg +=  pAliasList[i];	
+				msg +=  "<input type=\"hidden\" name=\"index\" value=\"";
+				msg +=  i;
+				msg +=  "\">";
+				msg +=  "</td>";
+				
+				// /*Show the current value of the publication*/
+				msg +=  "<td>"
+						"<input type=\"text\" name=\"name\" value=\"";
+				msg +=  pNameList[i];
+				msg +=  "\">"
+						"</td>";
+				
+				/*Add the button*/
+				msg +=	"<td>"
+						"<input type=\"submit\" value=\"Update\">"
+						"</td>";
+				
+				msg +=  "</tr>"
+						"</form>";
+			}
 		}
 		
 		msg += "</table>";
