@@ -35,7 +35,7 @@ NetworkHelper::NetworkHelper(const String& sServerName, char** pPubList, char** 
 	m_pSubAliasList(pSubAliasList),
 	m_nPubCount(nMaxPubCount),
 	m_nSubCount(nMaxSubCount)
-{
+{	
 	configureServer();
 }
 #endif
@@ -301,7 +301,7 @@ void NetworkHelper::handlePubSubList(char** pAliasList, char** pNameList, uint8_
 			msg +=  "\">";
 			msg +=  "</td>";
 			
-			/*Show the current value of the publication*/
+			// /*Show the current value of the publication*/
 			msg +=  "<td>"
 					"<input type=\"text\" name=\"name\" value=\"";
 			msg +=  pNameList[i];

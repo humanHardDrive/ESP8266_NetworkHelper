@@ -61,8 +61,6 @@ private:
 	void handleServerEntry();
 	void handleServerChange();
 	
-	void handleTestServerConnection();
-	
 	void handleSubscriptions();	
 	void handlePublications();
 	void handlePubSubList(char** pAliasList, char** pNameList, uint8_t nCount, String sName, String sPage, std::function<void(uint8_t, String)> callbackFn);
