@@ -6,6 +6,7 @@
 /*Use the DONT_REMEMBER flag to not recover infomration on startup,
   and not to store any changes to the network configuration*/
 //#define DONT_REMEMBER
+#define WIPE_ON_INVALID
 
 //Access point configuration
 IPAddress local_IP(192, 168, 1, 1);
@@ -13,8 +14,8 @@ IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 #define MAX_MQTT_PATH_LENGTH      32
-#define MAX_MQTT_SUBSCRIPTIONS    16
-#define MAX_MQTT_PUBLICATIONS     16
+#define MAX_MQTT_PUBLICATIONS     4
+#define MAX_MQTT_SUBSCRIPTIONS    4
 
 //Structure for saving the connection info to be recovred on startup
 struct ConnectionInfo
@@ -23,6 +24,7 @@ struct ConnectionInfo
   char password[32];
 
   char mqttAddress[MAX_MQTT_PATH_LENGTH];
+  uint16_t mqttPort;
   char mqttUser[MAX_MQTT_PATH_LENGTH];
   char mqttPass[MAX_MQTT_PATH_LENGTH];
 
@@ -47,6 +49,11 @@ char* pubAlias[4] =
   "SWITCH_2"
 };
 
+/*Create a wrapper for the pub/sub info*/
+/*This is needed because the helper expects an array of pointers,
+not a generic block of memory*/
+char* pubWrapper[MAX_MQTT_PUBLICATIONS];
+
 char* subAlias[4] =
 {
   "TEMPERATURE",
@@ -55,9 +62,11 @@ char* subAlias[4] =
   "OCCUPANT"
 };
 
+char* subWrapper[MAX_MQTT_SUBSCRIPTIONS];
+
 ConnectionInfo savedConnectionInfo;
-NetworkHelper helper(sHelperNetworkServerName, (char**)savedConnectionInfo.subscriptions, (char**)subAlias, 4,
-                     (char**)savedConnectionInfo.publications, (char**)pubAlias, 4);
+NetworkHelper helper(sHelperNetworkServerName, (char**)pubWrapper, (char**)pubAlias, 4,
+                     (char**)subWrapper, (char**)subAlias, 4);
 
 void UpdateConnectionInfo(const char* ssid, const char* password)
 {
@@ -68,12 +77,34 @@ void UpdateConnectionInfo(const char* ssid, const char* password)
   EEPROM.put(0, savedConnectionInfo);
 }
 
-bool isSavedInfoValid(ConnectionInfo* info)
+void UpdateMQTTServerInfo(const char* sAddr, uint16_t nPort, const char* sUser, const char* sPass)
 {
-  //Verify that the stored checksum matches the data
-  uint16_t checksum = CalcConnectionInfoChecksum(info);
+  strcpy(savedConnectionInfo.mqttAddress, sAddr);
+  savedConnectionInfo.mqttPort = nPort;
+  strcpy(savedConnectionInfo.mqttUser, sUser);
+  strcpy(savedConnectionInfo.mqttPass, sPass);
 
-  return (checksum == info->checksum);
+  savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
+
+  EEPROM.put(0, savedConnectionInfo);
+}
+
+void UpdateMQTTSubInfo(uint8_t nIndex, const char* sSubName)
+{
+  strcpy(savedConnectionInfo.subscriptions[nIndex], sSubName);
+
+  savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
+
+  EEPROM.put(0, savedConnectionInfo);
+}
+
+void UpdateMQTTPubInfo(uint8_t nIndex, const char* sPubName)
+{
+  strcpy(savedConnectionInfo.publications[nIndex], sPubName);
+
+  savedConnectionInfo.checksum = CalcConnectionInfoChecksum(&savedConnectionInfo);
+
+  EEPROM.put(0, savedConnectionInfo);
 }
 
 uint16_t CalcConnectionInfoChecksum(ConnectionInfo* info)
@@ -84,6 +115,14 @@ uint16_t CalcConnectionInfoChecksum(ConnectionInfo* info)
     checksum += ((char*)info)[i];
 
   return checksum;
+}
+
+bool isSavedInfoValid(ConnectionInfo* info)
+{
+  //Verify that the stored checksum matches the data
+  uint16_t checksum = CalcConnectionInfoChecksum(info);
+
+  return (checksum == info->checksum);
 }
 
 void Cleanup()
@@ -170,8 +209,22 @@ void setup()
     }
   }
   else
+  {
     Serial.println("Connection info checksum doesn't match OR SSID not valid");
+
+#ifdef WIPE_ON_INVALID
+    Serial.println("Resetting connection info");
+    memset(&savedConnectionInfo, 0, sizeof(ConnectionInfo));
 #endif
+  }
+#endif
+
+  /*Update the wrappes with string pointers*/
+  for(size_t i = 0; i < MAX_MQTT_SUBSCRIPTIONS; i++)
+    subWrapper[i] = savedConnectionInfo.subscriptions[i];
+
+  for(size_t i = 0; i < MAX_MQTT_PUBLICATIONS; i++)
+    pubWrapper[i] = savedConnectionInfo.publications[i];
 
   if (!bConnectedToAP)
   {
@@ -217,25 +270,48 @@ void setup()
     Serial.print("\tUser ");
     Serial.print(user);
     Serial.print(" Pass ");
+
+    UpdateMQTTServerInfo(ip.c_str(), port, user.c_str(), pass.c_str());
   });
 
   helper.onSubChange(
     [](uint8_t nIndex, String sSubName)
   {
-    Serial.println("Sub name change");
-    Serial.print(nIndex);
-    Serial.print(" changed to ");
-    Serial.println(sSubName);
+    if (nIndex < MAX_MQTT_SUBSCRIPTIONS)
+    {
+      Serial.println("Sub name change");
+      Serial.print(nIndex);
+      Serial.print(" changed to ");
+      Serial.println(sSubName);
+
+      UpdateMQTTSubInfo(nIndex, sSubName.c_str());
+    }
+    else
+    {
+      Serial.print("Sub index ");
+      Serial.print(nIndex);
+      Serial.println(" out of bounds");
+    }
   });
 
   helper.onPubChange(
     [](uint8_t nIndex, String sPubName)
   {
-    Serial.println("Pub name change");
-    Serial.print(nIndex);
-    Serial.print(" changed to ");
-    Serial.println(sPubName);
-    
+    if (nIndex < MAX_MQTT_PUBLICATIONS)
+    {
+      Serial.println("Pub name change");
+      Serial.print(nIndex);
+      Serial.print(" changed to ");
+      Serial.println(sPubName);
+
+      UpdateMQTTPubInfo(nIndex, sPubName.c_str());
+    }
+    else
+    {
+      Serial.print("Pub index ");
+      Serial.print(nIndex);
+      Serial.println(" out of bounds");
+    }
   });
 
   //Start the network helper
